@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/use-auth'
+import { AuthPageWrapper } from '@/components/auth/AuthRedirect'
 import { Eye, EyeOff, UserPlus, Mail } from 'lucide-react'
 import Link from 'next/link'
 
@@ -80,7 +81,8 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <AuthPageWrapper>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -232,5 +234,6 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+    </AuthPageWrapper>
   )
 }

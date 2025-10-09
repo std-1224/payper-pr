@@ -1,11 +1,22 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { LogIn, UserPlus } from 'lucide-react'
 
 export function LoginRequired() {
   const router = useRouter()
+  const pathname = usePathname()
+
+  const handleSignIn = () => {
+    const redirectUrl = pathname !== '/' ? `?redirect=${encodeURIComponent(pathname)}` : ''
+    router.push(`/auth/login${redirectUrl}`)
+  }
+
+  const handleSignUp = () => {
+    const redirectUrl = pathname !== '/' ? `?redirect=${encodeURIComponent(pathname)}` : ''
+    router.push(`/auth/signup${redirectUrl}`)
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -21,16 +32,16 @@ export function LoginRequired() {
         </div>
         
         <div className="space-y-3">
-          <Button 
-            onClick={() => router.push('/auth/login')}
+          <Button
+            onClick={handleSignIn}
             className="w-full bg-lime-400 hover:bg-lime-500 text-black font-medium"
           >
             <LogIn className="w-4 h-4 mr-2" />
             Sign In
           </Button>
-          
-          <Button 
-            onClick={() => router.push('/auth/signup')}
+
+          <Button
+            onClick={handleSignUp}
             variant="outline"
             className="w-full border-zinc-700 text-white hover:bg-zinc-800"
           >

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AuthService } from '@/lib/auth-service'
+import { AuthPageWrapper } from '@/components/auth/AuthRedirect'
 import { ArrowLeft, Mail } from 'lucide-react'
 import Link from 'next/link'
 
@@ -32,7 +33,8 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <AuthPageWrapper>
+        <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <div className="mb-8">
             <div className="w-16 h-16 bg-lime-400 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -55,11 +57,13 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
+      </AuthPageWrapper>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <AuthPageWrapper>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -121,5 +125,6 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
     </div>
+    </AuthPageWrapper>
   )
 }

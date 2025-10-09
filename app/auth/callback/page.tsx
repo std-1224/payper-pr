@@ -14,20 +14,20 @@ export default function AuthCallback() {
         
         if (error) {
           console.error('Auth callback error:', error)
-          router.push('/auth/login?error=callback_error')
+          router.replace('/auth/login?error=callback_error')
           return
         }
 
         if (data.session) {
           // Successful authentication, redirect to main app
-          router.push('/')
+          router.replace('/')
         } else {
           // No session, redirect to login
-          router.push('/auth/login')
+          router.replace('/auth/login')
         }
       } catch (error) {
         console.error('Auth callback error:', error)
-        router.push('/auth/login?error=callback_error')
+        router.replace('/auth/login?error=callback_error')
       }
     }
 
