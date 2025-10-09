@@ -64,7 +64,7 @@ export default function InvitationsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-black pb-20">
+      <div className="min-h-screen bg-black pb-20 pt-16">
         <Header cart={cart} onCartClick={() => setCartModalOpen(true)} />
         <div className="px-4 pt-4 space-y-4">
         <div className="flex items-center justify-between">

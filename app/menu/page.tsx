@@ -104,18 +104,18 @@ export default function MenuPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-black pb-20">
+      <div className="min-h-screen bg-black pb-20 pt-16">
         <Header cart={cart} onCartClick={() => setCartModalOpen(true)} />
         <BalanceSection balance={balance} formatPrice={formatPrice} />
         <CategoryTabs />
         <ProductGrid />
         {cart.length > 0 && (
-          <div className="fixed bottom-20 left-4 right-4">
+          <div className="fixed bottom-20 max-w-md mx-auto">
             <Button
               className="w-full bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl p-4 border border-lime-400 leading-7 tracking-normal my-2.5 mx-0 h-auto"
               onClick={() => setCartModalOpen(true)}
             >
-              <div className="flex items-center justify-between w-full">
+              <div className="flex items-center justify-between w-full gap-8">
                 <div className="text-left">
                   <p className="font-medium">{cart.reduce((sum, item) => sum + item.quantity, 0)} productos</p>
                   <p className="text-lime-400 font-bold">
