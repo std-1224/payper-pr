@@ -1,109 +1,77 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { useAuth, useAuthLoading, useIsAuthenticated } from '@/hooks/use-auth'
-import { LoadingSpinner } from './LoadingSpinner'
-import { RoleAccessDenied } from './RoleAccessDenied'
-import { LoginRequired } from './LoginRequired'
+import { useEffect, ReactNode } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  requireRole?: string | string[]
-  fallback?: React.ReactNode
+  children: ReactNode
+  requireAuth?: boolean
+  requireRole?: boolean
+  fallbackPath?: string
 }
 
-export function ProtectedRoute({
-  children,
-  requireRole = ['pr', 'master'],
-  fallback
-}: ProtectedRouteProps) {
-  const isLoading = useAuthLoading()
-  const isAuthenticated = useIsAuthenticated()
-  const { hasRole } = useAuth()
+export const ProtectedRoute = ({ 
+  children, 
+  requireAuth = true, 
+  requireRole = true,
+  fallbackPath = "/auth"
+}: ProtectedRouteProps) => {
+  const { user, profile, isLoading, hasRequiredRole } = useAuth()
+  const router = useRouter()
 
-  // Show loading spinner while checking authentication
-  if (isLoading) {
-    return fallback || <LoadingSpinner />
-  }
+  useEffect(() => {
+    // Don't redirect while loading
+    if (isLoading) return
 
-  // If not authenticated, show login required
-  if (!isAuthenticated) {
-    return <LoginRequired />
-  }
-
-  // Check if user has any of the required roles
-  const hasRequiredRole = () => {
-    if (!requireRole) return true
-
-    if (Array.isArray(requireRole)) {
-      return requireRole.some(role => hasRole(role))
+    // If authentication is required but user is not authenticated
+    if (requireAuth && !user) {
+      router.push(fallbackPath)
+      return
     }
 
-    return hasRole(requireRole)
-  }
+    // If user is authenticated but role check is required
+    if (requireAuth && requireRole && user) {
+      if (!hasRequiredRole()) {
+        router.push('/role-access')
+        return
+      }
+    }
+  }, [user, profile, isLoading, hasRequiredRole, requireAuth, requireRole, router, fallbackPath])
 
-  // If role is required and user doesn't have it, show access denied
-  if (requireRole && !hasRequiredRole()) {
-    const roleDisplay = Array.isArray(requireRole) ? requireRole.join(' or ') : requireRole
-    return <RoleAccessDenied requiredRole={roleDisplay} />
-  }
-
-  // User is authenticated and has required role
-  return <>{children}</>
-}
-
-// Convenience component for PR and Admin routes (default behavior)
-export function PRProtectedRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
-  return (
-    <ProtectedRoute requireRole={['pr', 'master']} fallback={fallback}>
-      {children}
-    </ProtectedRoute>
-  )
-}
-
-// Convenience component for PR-only routes
-export function PROnlyRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
-  return (
-    <ProtectedRoute requireRole="pr" fallback={fallback}>
-      {children}
-    </ProtectedRoute>
-  )
-}
-
-// Convenience component for Admin-only routes
-export function AdminOnlyRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
-  return (
-    <ProtectedRoute requireRole="admin" fallback={fallback}>
-      {children}
-    </ProtectedRoute>
-  )
-}
-
-// Higher-order component for protecting pages
-export function withAuth<P extends object>(
-  Component: React.ComponentType<P>,
-  requireRole?: string | string[]
-) {
-  return function AuthenticatedComponent(props: P) {
+  // Show loading state while checking authentication
+  if (isLoading) {
     return (
-      <ProtectedRoute requireRole={requireRole}>
-        <Component {...props} />
-      </ProtectedRoute>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-white rounded grid grid-cols-2 gap-0.5 p-1">
+              <div className="bg-black rounded-sm"></div>
+              <div className="bg-black rounded-sm"></div>
+              <div className="bg-black rounded-sm"></div>
+              <div className="bg-black rounded-sm"></div>
+            </div>
+            <span className="text-white font-bold text-2xl">Payper</span>
+          </div>
+          <div className="text-white">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400 mx-auto mb-4"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
     )
   }
-}
 
-// Higher-order component for PR and Admin pages (default)
-export function withPRAuth<P extends object>(Component: React.ComponentType<P>) {
-  return withAuth(Component, ['pr', 'master'])
-}
+  // If authentication is required but user is not authenticated, don't render children
+  if (requireAuth && !user) {
+    return null
+  }
 
-// Higher-order component for PR-only pages
-export function withPROnlyAuth<P extends object>(Component: React.ComponentType<P>) {
-  return withAuth(Component, 'pr')
-}
+  // If role is required but user doesn't have proper role, don't render children
+  if (requireAuth && requireRole && user && !hasRequiredRole()) {
+    return null
+  }
 
-// Higher-order component for Admin-only pages
-export function withAdminAuth<P extends object>(Component: React.ComponentType<P>) {
-  return withAuth(Component, 'master')
+  // Render children if all checks pass
+  return <>{children}</>
 }

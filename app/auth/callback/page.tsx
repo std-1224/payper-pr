@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
-export default function AuthCallback() {
+export default function AuthCallbackPage() {
   const router = useRouter()
 
   useEffect(() => {
@@ -13,21 +13,21 @@ export default function AuthCallback() {
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Auth callback error:', error)
-          router.replace('/auth/login?error=callback_error')
+          console.error('Error in auth callback:', error)
+          router.push('/auth?error=callback_error')
           return
         }
 
         if (data.session) {
-          // Successful authentication, redirect to main app
-          router.replace('/')
+          // User is authenticated, redirect to menu
+          router.push('/menu')
         } else {
-          // No session, redirect to login
-          router.replace('/auth/login')
+          // No session, redirect to auth
+          router.push('/auth')
         }
-      } catch (error) {
-        console.error('Auth callback error:', error)
-        router.replace('/auth/login?error=callback_error')
+      } catch (err) {
+        console.error('Unexpected error in auth callback:', err)
+        router.push('/auth?error=unexpected_error')
       }
     }
 
@@ -37,8 +37,19 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-lime-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-white">Completing authentication...</p>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="w-8 h-8 bg-white rounded grid grid-cols-2 gap-0.5 p-1">
+            <div className="bg-black rounded-sm"></div>
+            <div className="bg-black rounded-sm"></div>
+            <div className="bg-black rounded-sm"></div>
+            <div className="bg-black rounded-sm"></div>
+          </div>
+          <span className="text-white font-bold text-2xl">Payper</span>
+        </div>
+        <div className="text-white">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400 mx-auto mb-4"></div>
+          <p>Completing sign in...</p>
+        </div>
       </div>
     </div>
   )
