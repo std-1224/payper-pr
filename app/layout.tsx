@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Playfair_Display } from "next/font/google"
 import { CartProvider } from "@/contexts/CartContext"
 import { AuthProvider } from "@/contexts/AuthContext"
+import { QueryProvider } from "@/contexts/QueryProvider"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
@@ -29,12 +30,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`dark font-sans antialiased ${GeistSans.variable} ${GeistMono.variable} ${playfair.variable}`}>
-        <AuthProvider>
-          <CartProvider>
-            {children}
-            <Toaster />
-          </CartProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+              <Toaster />
+            </CartProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   )

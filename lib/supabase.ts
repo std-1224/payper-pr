@@ -34,6 +34,46 @@ export interface Profile {
   approval_stati: string | null
 }
 
+// Database types for the products table
+export interface Product {
+  id: string
+  name: string
+  description: string | null
+  category: string | null
+  stock: number
+  image_url: string | null
+  created_at: string
+  updated_at: string
+  purchase_price: number | null
+  sale_price: number
+  is_active: boolean
+  is_pr: boolean
+  is_courtesy: boolean
+  type: string | null
+  has_recipe: boolean
+  recipe_id: string | null
+  ingredient_id: string | null
+  deleted_at: string | null
+}
+
+// Database types for the tables table
+export interface Table {
+  id: string
+  venue_id: string | null
+  table_number: number
+  capacity: number | null
+  current_guest: number
+  status: 'free' | 'occupied' | 'waiting_order' | 'producing' | 'delivered' | 'bill_requested' | 'paid'
+  assigned_waiter: string | null
+  created_at: string
+  updated_at: string
+  extra_balance: number | null
+  description?: string | null
+}
+
+// Table status type for better type safety
+export type TableStatus = 'free' | 'occupied' | 'waiting_order' | 'producing' | 'delivered' | 'bill_requested' | 'paid'
+
 export interface User {
   id: string
   email?: string

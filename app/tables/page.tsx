@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -13,20 +13,69 @@ import { Header } from "@/components/shared/Header"
 import { BottomNav } from "@/components/shared/BottomNav"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useCart } from "@/contexts/CartContext"
-import { tableHistory } from "@/lib/data/mockData"
+import { useTables, useUpdateTableStatus } from "@/hooks/use-tables"
+import { useUIStore } from "@/stores/ui-store"
 import { calculateCommission, generatePaymentLink } from "@/lib/utils/formatters"
 
 export default function TablesPage() {
   const { cart, setCartModalOpen } = useCart()
-  const [showHistory, setShowHistory] = useState(false)
-  const [historyFilter, setHistoryFilter] = useState("all")
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-  const [tableModalOpen, setTableModalOpen] = useState(false)
-  const [selectedTable, setSelectedTable] = useState<number | null>(null)
-  const [tablePrice, setTablePrice] = useState("")
-  const [clientName, setClientName] = useState("")
-  const [customMessage, setCustomMessage] = useState("")
+
+  // Use Zustand store for UI state
+  const {
+    showHistory,
+    historyFilter,
+    selectedMonth,
+    selectedYear,
+    tableModalOpen,
+    selectedTable,
+    tablePrice,
+    clientName,
+    customMessage,
+    setShowHistory,
+    setHistoryFilter,
+    setSelectedMonth,
+    setSelectedYear,
+    setTableModalOpen,
+    setSelectedTable,
+    setTablePrice,
+    setClientName,
+    setCustomMessage,
+    resetTableForm,
+  } = useUIStore()
+
+  // Fetch tables data
+  const { data: tables = [], isLoading, error } = useTables()
+  const updateTableStatus = useUpdateTableStatus()
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-black pb-20 pt-16 flex items-center justify-center">
+          <div className="text-white">Cargando mesas...</div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-black pb-20 pt-16 flex items-center justify-center">
+          <div className="text-red-400">Error al cargar mesas: {error.message}</div>
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  // Calculate table statistics
+  const availableTables = tables.filter(table => table.status === 'free')
+  const occupiedTables = tables.filter(table => table.status !== 'free')
+  const myTables = tables.filter(table => table.status === 'occupied') // Placeholder for user's tables
+
+  // For now, use empty array for history until we implement table history tracking
+  const tableHistory: any[] = []
 
   const filterHistoryByDate = (items: any[]) => {
     const now = new Date()
@@ -74,15 +123,15 @@ export default function TablesPage() {
         {!showHistory && (
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-zinc-900 rounded-xl p-3 text-center">
-              <div className="text-lime-400 text-lg font-bold">23</div>
-              <div className="text-zinc-400 text-xs">Vendidas</div>
+              <div className="text-lime-400 text-lg font-bold">{occupiedTables.length}</div>
+              <div className="text-zinc-400 text-xs">Ocupadas</div>
             </div>
             <div className="bg-zinc-900 rounded-xl p-3 text-center">
-              <div className="text-white text-lg font-bold">7</div>
+              <div className="text-white text-lg font-bold">{availableTables.length}</div>
               <div className="text-zinc-400 text-xs">Disponibles</div>
             </div>
             <div className="bg-zinc-900 rounded-xl p-3 text-center">
-              <div className="text-lime-400 text-lg font-bold">8</div>
+              <div className="text-lime-400 text-lg font-bold">{myTables.length}</div>
               <div className="text-zinc-400 text-xs">Mis Ventas</div>
             </div>
           </div>
@@ -173,36 +222,41 @@ export default function TablesPage() {
 
         {!showHistory && (
           <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: 30 }, (_, i) => {
-              const tableNumber = i + 1
-              const isAvailable = [3, 7, 9, 12, 15, 18, 21].includes(tableNumber)
-              const owner = isAvailable
-                ? null
-                : ["Juan Pérez", "Ana García", "Carlos López"][Math.floor(Math.random() * 3)]
+            {tables.map((table) => {
+              const isAvailable = table.status === 'free'
+              const statusLabels = {
+                'free': 'Libre',
+                'occupied': 'Ocupada',
+                'waiting_order': 'Esperando',
+                'producing': 'Preparando',
+                'delivered': 'Entregado',
+                'bill_requested': 'Cuenta',
+                'paid': 'Pagado'
+              }
 
               return (
                 <div
-                  key={i}
+                  key={table.id}
                   className={`bg-zinc-900 rounded-xl p-3 text-center border ${isAvailable ? "border-lime-400" : "border-zinc-700"
                     }`}
                 >
-                  <div className="text-white font-bold mb-2">Mesa {tableNumber}</div>
+                  <div className="text-white font-bold mb-2">Mesa {table.table_number}</div>
                   {isAvailable ? (
                     <div className="space-y-2">
                       <Badge className="bg-lime-400 text-black text-xs">Libre</Badge>
-                      <Dialog open={tableModalOpen && selectedTable === tableNumber} onOpenChange={setTableModalOpen}>
+                      <Dialog open={tableModalOpen && selectedTable === table.table_number} onOpenChange={setTableModalOpen}>
                         <DialogTrigger asChild>
                           <Button
                             size="sm"
                             className="w-full bg-lime-400 hover:bg-lime-500 text-black text-xs py-1 rounded-full"
-                            onClick={() => setSelectedTable(tableNumber)}
+                            onClick={() => setSelectedTable(table.table_number)}
                           >
                             Vender
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-sm mx-4">
                           <DialogHeader>
-                            <DialogTitle className="text-lime-400">Vender Mesa {tableNumber}</DialogTitle>
+                            <DialogTitle className="text-lime-400">Vender Mesa {table.table_number}</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div className="space-y-2">
@@ -271,8 +325,13 @@ export default function TablesPage() {
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <Badge className="bg-zinc-700 text-white text-xs">Vendida</Badge>
-                      <p className="text-zinc-500 text-xs">{owner}</p>
+                      <Badge className="bg-zinc-700 text-white text-xs">{statusLabels[table.status]}</Badge>
+                      {table.description && (
+                        <p className="text-zinc-500 text-xs">{table.description}</p>
+                      )}
+                      {table.current_guest > 0 && (
+                        <p className="text-zinc-400 text-xs">{table.current_guest} huéspedes</p>
+                      )}
                     </div>
                   )}
                 </div>

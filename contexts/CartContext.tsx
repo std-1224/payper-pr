@@ -3,19 +3,19 @@
 import { createContext, useContext, useState, ReactNode } from "react"
 
 interface CartItem {
-  id: number
+  id: string
   name: string
   price: number
-  category: string
-  image: string
+  category: string | null
+  image: string | null
   quantity: number
 }
 
 interface CartContextType {
   cart: CartItem[]
   addToCart: (product: any) => void
-  updateQuantity: (productId: number, change: number) => void
-  removeFromCart: (productId: number) => void
+  updateQuantity: (productId: string, change: number) => void
+  removeFromCart: (productId: string) => void
   clearCart: () => void
   cartModalOpen: boolean
   setCartModalOpen: (open: boolean) => void
@@ -46,11 +46,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (existingItem) {
       setCart(cart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)))
     } else {
-      setCart([...cart, { ...product, quantity: 1 }])
+      // Map database product to cart item
+      const cartItem: CartItem = {
+        id: product.id,
+        name: product.name,
+        price: product.sale_price,
+        category: product.category,
+        image: product.image_url,
+        quantity: 1,
+      }
+      setCart([...cart, cartItem])
     }
   }
 
-  const updateQuantity = (productId: number, change: number) => {
+  const updateQuantity = (productId: string, change: number) => {
     setCart(
       cart
         .map((item) => {
@@ -64,7 +73,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     )
   }
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCart(cart.filter((item) => item.id !== productId))
   }
 
