@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, ReactNode } from "react"
+import { Product } from "@/lib/supabase"
 
 interface CartItem {
   id: string
@@ -13,7 +14,7 @@ interface CartItem {
 
 interface CartContextType {
   cart: CartItem[]
-  addToCart: (product: any) => void
+  addToCart: (product: Product) => void
   updateQuantity: (productId: string, change: number) => void
   removeFromCart: (productId: string) => void
   clearCart: () => void
@@ -41,7 +42,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [orderConfirmModalOpen, setOrderConfirmModalOpen] = useState(false)
   const [generatedQR, setGeneratedQR] = useState("")
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: Product) => {
     const existingItem = cart.find((item) => item.id === product.id)
     if (existingItem) {
       setCart(cart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)))

@@ -2,25 +2,31 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, ShoppingCart } from "lucide-react"
+import { Plus, ShoppingCart, Loader2 } from "lucide-react"
 import { Header } from "@/components/shared/Header"
 import { BalanceSection } from "@/components/shared/BalanceSection"
 import { BottomNav } from "@/components/shared/BottomNav"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useCart } from "@/contexts/CartContext"
-import { products } from "@/lib/data/mockData"
 import { formatPrice } from "@/lib/utils/formatters"
 import { CartModal } from "@/components/shared/CartModal"
 import { OrderConfirmModal } from "@/components/shared/OrderConfirmModal"
+import { useProducts } from "@/hooks/use-products"
+import { useMenuStore } from "@/stores/menu-store"
 
 export default function MenuPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all")
   const [balance] = useState(27000)
   const { cart, addToCart, updateQuantity, setCartModalOpen } = useCart()
 
-  const filteredProducts = products.filter(
+  // Use Zustand store for UI state
+  const { selectedCategory, setSelectedCategory } = useMenuStore()
+
+  // Use React Query for server data
+  const { data: products, isLoading, error } = useProducts()
+
+  const filteredProducts = products?.filter(
     (product) => selectedCategory === "all" || product.category === selectedCategory,
-  )
+  ) || []
 
   const CategoryTabs = () => (
     <div className="px-4 mt-6">
@@ -47,9 +53,36 @@ export default function MenuPage() {
     </div>
   )
 
-  const ProductGrid = () => (
-    <div className="px-4 mt-6 grid grid-cols-2 gap-4">
-      {filteredProducts.map((product) => {
+  const ProductGrid = () => {
+    if (isLoading) {
+      return (
+        <div className="px-4 mt-6 flex justify-center items-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-lime-400" />
+          <span className="ml-2 text-white">Cargando productos...</span>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="px-4 mt-6 text-center py-8">
+          <p className="text-red-400">Error al cargar productos</p>
+          <p className="text-zinc-400 text-sm mt-1">Por favor, intenta nuevamente</p>
+        </div>
+      )
+    }
+
+    if (!filteredProducts.length) {
+      return (
+        <div className="px-4 mt-6 text-center py-8">
+          <p className="text-zinc-400">No hay productos disponibles</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="px-4 mt-6 grid grid-cols-2 gap-4">
+        {filteredProducts.map((product) => {
         const cartItem = cart.find((item) => item.id === product.id)
         const quantity = cartItem?.quantity || 0
 
@@ -57,7 +90,7 @@ export default function MenuPage() {
           <div key={product.id} className="bg-zinc-900 rounded-2xl p-4 space-y-3">
             <div className="aspect-square bg-zinc-800 rounded-xl overflow-hidden">
               <img
-                src={product.image || "/placeholder.svg"}
+                src={product.image_url || "/placeholder.svg"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -65,7 +98,7 @@ export default function MenuPage() {
             <div className="space-y-2">
               <h3 className="text-white font-medium">{product.name}</h3>
               <div className="flex items-center justify-between">
-                <span className="text-white font-bold">{formatPrice(product.price)}</span>
+                <span className="text-white font-bold">{formatPrice(product.sale_price)}</span>
                 {quantity > 0 ? (
                   <div className="flex items-center gap-2">
                     <Button
@@ -99,8 +132,9 @@ export default function MenuPage() {
           </div>
         )
       })}
-    </div>
-  )
+      </div>
+    )
+  }
 
   return (
     <ProtectedRoute>

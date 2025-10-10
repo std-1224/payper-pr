@@ -12,13 +12,17 @@ import { Header } from "@/components/shared/Header"
 import { BottomNav } from "@/components/shared/BottomNav"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { useCart } from "@/contexts/CartContext"
-import { courtesies, products } from "@/lib/data/mockData"
+import { courtesies } from "@/lib/data/mockData"
+import { useProducts } from "@/hooks/use-products"
 
 export default function CourtesiesPage() {
   const { cart, setCartModalOpen } = useCart()
   const [courtesyModalOpen, setCourtesyModalOpen] = useState(false)
   const [selectedCourtesy, setSelectedCourtesy] = useState("")
   const [courtesyRecipient, setCourtesyRecipient] = useState("")
+
+  // Use React Query for products data
+  const { data: products } = useProducts()
 
   return (
     <ProtectedRoute>
@@ -46,11 +50,11 @@ export default function CourtesiesPage() {
                       <SelectValue placeholder="Seleccionar producto" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-800 border-zinc-700">
-                      {products.map((product) => (
+                      {products?.map((product) => (
                         <SelectItem key={product.id} value={product.name} className="text-white">
                           {product.name}
                         </SelectItem>
-                      ))}
+                      )) || []}
                     </SelectContent>
                   </Select>
                 </div>
